@@ -30,23 +30,23 @@ All of the Fulbourn code examples in the paper can be found in either `fulbourn/
 Correctness tests of the sorting algorithm and other functions are in the file `Test.hs`, which can be run with `runhaskell Main.hs --test`.
 
 
-## Formalisation of Theorem 6.3
+## Formalisation of Theorem 4.3
 
-A machine checked proof of Theorem 6.3 in Agda can be found in `normalisation/Norm.agda`, under the name `thm`.
+A machine checked proof of Theorem 4.3 in Agda can be found in `normalisation/Norm.agda`, under the name `thm`.
 To check the proof, run `agda normalisation/Norm.agda`.
 
 This has been tested with agda version 2.6.4.3
 
-## Formalisation of Sections 7 and 8
+## Formalisation of Sections 5 and 6
 
-We also provide an Agda formalisation of our pullback arguments in Section 7 and 8, including a
-proof of Theorem 8.5 in the `completeness` directory, under `TermQuad.agda`.
+We also provide an Agda formalisation of our pullback arguments in Section 5 and 6, including a
+proof of Theorem 6.5 in the `completeness` directory, under `TermQuad.agda`.
 To check the proof, run `agda completeness/TermQuad.agda`.
 
 
-## Formalisation of Section 10
+## Formalisation of Section 8
 
-An implementation of the `nunify` algorithm from Section 10 in Rocq/Coq (including the termination
+An implementation of the `nunify` algorithm from Section 8 in Rocq/Coq (including the termination
 proof) is available in `unify/solver.v`.
 
 The file was tested with Coq version 8.18.0. The `nunify_fast` function and the end of the file furthermore requires the [`Equations`](https://mattam82.github.io/Coq-Equations/) package which can be install via `opam install coq-equations`.
