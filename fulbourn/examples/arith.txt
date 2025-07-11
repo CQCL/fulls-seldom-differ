@@ -1,0 +1,87 @@
+-- Divide and conquer adder
+adder<n> : n of Bit -> n of Bit -> Bit -> (Bit, n of Bit)
+adder [] [] b = (b, [])
+adder (xsh =&= xsl) (ysh =&= ysl) b =
+ adder xsl ysl b -> (c, zsl);
+ adder xsh ysh c -> (d, zsh);
+ (d, zsh =&= zsl)
+-- Slightly gratuitous to take the bit out of the middle
+adder (xsh =, xmid ,= xsl) (ysh =, ymid ,= ysl) b =
+ adder xsl ysl b -> (c, zsl);
+ full_add xmid ymid c -> (d, zmid);
+ adder xsh ysh d -> (e, zsh);
+ (e, (zsh =, zmid ,= zsl))
+
+-- Speculative adder
+spec_adder<n> : n of Bit -> n of Bit -> Bit -> (Bit, n of Bit)
+spec_adder [] [] b = (b, [])
+spec_adder (xsh =&= xsl) (ysh =&= ysl) b =
+ spec_adder xsl ysl b -> (c, zsl);
+ spec_adder xsh ysh ff -> (d_f, zsh_f);
+ spec_adder xsh ysh tt -> (d_t, zsh_t);
+ ifthenelse c (d_t, zsh_t =&= zsl) (d_f, zsh_f =&= zsl)
+spec_adder (xh ,- xsl) (yh ,- ysl) b =
+ spec_adder xsl ysl b -> (c, zsl);
+ full_add xh yh c -> (d, zh);
+ (d, (zh ,- zsl))
+
+zero<n> : 2^ n of Bit
+zero<Z> = [ff]
+zero<S n> = zero<n> =&= zero<n>
+
+mul<n> : 2^ n of Bit -> 2^ n of Bit -> 2^ S n of Bit
+mul a b = mulp2 a b zero zero
+
+-- a * b + c + d
+mulp2<n> : 2^ n of Bit -> 2^ n of Bit -> 2^ n of Bit -> 2^ n of Bit -> 2^ S n of Bit
+mulp2 [a] [b] c [d] = adder [and a b] c d -> (hi, [lo]); [hi, lo]
+mulp2 (ah =&= al) (bh =&= bl) (ch =&= cl) (dh =&= dl) =
+ mulp2 al bl cl dl -> (eh =&= el);
+ mulp2 al bh ch dh -> (fhh =&= fh);
+ mulp2 ah bl eh fh -> (ghh =&= gh);
+ mulp2 ah bh fhh ghh -> hs;
+ (hs =&= (gh =&= el))
+
+
+-- an uncurried version of ,-
+cons<n> : (T, n of T) -> S n of T
+cons (x, xs) = x ,- xs
+
+transpose<n,m> : n of m of T -> m of n of T
+transpose [] = rep [] -- 0 of m of T -> m of 0 of T
+transpose (r ,- rs) =
+  transpose rs -> ts; -- m of (n-1 of T)
+  zip r ts -> ps; -- m of (T, n-1 of T)
+  map cons ps
+
+-- There are many kinds of concatenation that Z S D F cannot express
+-- as it does not have arbitrary multiplication, but here is one it can.
+concatSq<n> : 2^ n of 2^ n of T -> 2^ D n of T
+concatSq [x] = x
+concatSq (top =&= bottom) = (concatWide top) =&= (concatWide bottom)
+
+splitInHalf<n> : D n of T -> (n of T, n of T)
+splitInHalf (xs =&= ys) = (xs, ys)
+
+concatWide<n> : 2^ n of 2^ S n of T -> 2^ S D n of T
+concatWide [row] = row
+concatWide<S n> rows =
+  -- say we have rows=[ltop..rtop
+  --                  , ........
+  --                  ,lbot..rbot]
+  unzip (map splitInHalf rows) -> (ltop =&= lbot, rtop =&= rbot);
+  (concatSq (ltop =%= rtop)) =&= (concatSq (lbot =%= rbot))
+
+---- Matrix multiplication
+dot<n,m> : n of 2^ m of Bit -> n of 2^ m of Bit -> 2^ m of Bit
+dot [] [] = zero
+dot (x ,- xs) (y ,- ys) =
+  mul x y -> (_ =&= xy); -- discard high half
+  adder xy (dot xs ys) ff -> (_, sum); -- and discard carry-out
+  sum
+
+flip : (A -> B -> C) -> B -> A -> C
+flip f x y = f y x
+
+matmul<i,j,k,n>: i of j of 2^ n of Bit -> j of k of 2^ n of Bit -> i of k of 2^ n of Bit
+matmul as bs = map (flip map (transpose bs)) (map dot as)

@@ -1,0 +1,3 @@
+map<m> : (A -> B) -> m of A -> m of B
+map<Z> f [] = []
+map<S n> f (x ,- xs) = (f x) ,- (map<n> f xs)

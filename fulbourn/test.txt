@@ -1,0 +1,1 @@
+testOdd<S n>(ls =, mid ,= rs) = rs =, mid ,= ls

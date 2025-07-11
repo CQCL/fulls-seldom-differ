@@ -1,0 +1,24 @@
+name: fulbourn
+
+executable:
+  main: Main.hs
+  source-dirs: .
+
+dependencies:
+- base
+- filepath
+- mtl
+- parsec
+
+default-extensions:
+- DeriveFoldable
+- DeriveFunctor
+- DeriveTraversable
+- TypeOperators
+- KindSignatures
+- PolyKinds
+- StandaloneDeriving
+- EmptyDataDeriving
+- RankNTypes
+- TupleSections
+- FlexibleInstances

@@ -1,0 +1,2 @@
+system-ghc: True
+resolver: "lts-19.33"

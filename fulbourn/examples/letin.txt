@@ -1,0 +1,18 @@
+trus<n> : 2^ n of Bit
+trus<Z> = [tt]
+trus<S n> = trus<n> =&= trus<n>
+
+-- Some nonsense programs to test the `... -> ...; ...` syntax
+
+foo : Bit -> (Bit, Bit)
+foo b = (b, not b)
+
+hoo<n> : (F n of Bit, S Z of Bit)
+hoo = (trus -> xs -, x; xs
+      ,[foo (and tt ff -> b; b) -> (b1, b2); and b1 b2 -> b; b]
+      )
+
+chain : Bit
+chain = foo tt -> (b0, b1);
+ and b0 b1 -> b;
+ b

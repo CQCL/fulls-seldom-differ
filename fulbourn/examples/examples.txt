@@ -1,0 +1,105 @@
+-- Example programs
+
+ifthenelse : Bit -> A -> A -> A
+ifthenelse tt then _ = then
+ifthenelse ff _ else = else
+
+not : Bit -> Bit
+not a = ifthenelse a ff tt
+
+and : Bit -> Bit -> Bit
+and a b = ifthenelse a b ff
+
+or : Bit -> Bit -> Bit
+or a b = ifthenelse a tt b
+
+xor : Bit -> Bit -> Bit
+xor a b = ifthenelse a (not b) b
+
+hadd : Bit -> Bit -> (Bit, Bit)
+hadd a b = (and a b, xor a b)
+
+full_add :  Bit -> Bit -> Bit -> (Bit, Bit)
+full_add a1 b1 c1 =
+ hadd a1 b1 -> (d2, d1);
+ hadd d1 c1 -> (e2, e1);
+ (xor d2 e2, e1)
+
+-- Sequential adder
+adc<n> : 2^ n of Bit -> 2^ n of Bit -> Bit -> (Bit, 2^ n of Bit)
+adc [a] [b] c = full_add a b c -> (h, l); (h, [l])
+adc (ah =&= al) (bh =&= bl) c =
+ adc al bl c -> (c, dl);
+ adc ah bh c -> (c, dh);
+ (c, dh =&= dl)
+
+eqn<n> : 2^ n of Bit -> 2^ n of Bit -> Bit
+eqn [a] [b] = not (xor a b)
+eqn (ah =&= al) (bh =&= bl) = and (eqn ah bh) (eqn al bl)
+
+ltn<n> : 2^ n of Bit -> 2^ n of Bit -> Bit
+ltn [a] [b] = and (not a) b
+ltn (ah =&= al) (bh =&= bl) =
+    or (ltn ah bh) (and (eqn ah bh) (ltn al bl))
+
+cas<n> : (2^ n of Bit, 2^ n of Bit) -> (2^ n of Bit, 2^ n of Bit)
+cas (i, j) = ifthenelse (ltn j i) (j, i) (i, j)
+
+unzip<n> : n of (A, B) -> (n of A, n of B)
+unzip [] = ([], [])
+unzip ((x, y) ,- xys) = unzip xys -> (xs, ys); (x ,- xs, y ,- ys)
+
+zip<n>: n of A -> n of B -> n of (A, B)
+zip [] [] = []
+zip (x ,- xs) (y ,- ys) = (x,y) ,- (zip xs ys)
+
+rep<n> : T -> n of T
+rep<Z> t = []
+rep<S n> t = t ,- (rep t)
+
+map<n> : (a -> b) -> n of a -> n of b
+map f xs = (rep f)! xs
+
+merge<n> : ((T, T) -> (T, T)) -> 2^ n of T -> 2^ n of T -> 2^ S n of T
+merge casT [a] [b] = casT (a, b) -> (l, h); [l, h]
+merge casT (le =%= lo) (re =%= ro) =
+ (merge casT le re, merge casT lo ro) -> (min ,- es, os -, max);
+ unzip (map casT (zip es os)) -> (es2, os2);
+ min ,- (es2 =%= os2) -, max
+
+sort<n> : ((T, T) -> (T, T)) -> 2^ n of T -> 2^ n of T
+sort _ [a] = [a]
+sort casT (xs =&= ys) = merge casT (sort casT xs) (sort casT ys)
+
+-- would like to make this an inner function, but we don't have that in the language
+dircas : ((T, T) -> (T, T)) -> Bit -> (T, T) -> (T, T)
+dircas casT ff vals = casT vals
+dircas casT tt vals = casT vals -> (l, h); (h, l)
+
+-- `rev` controls direction of output (sorted) array
+-- input must be bitonic: increasing then decreasing, regardless of `rev`
+bitonic_to_sorted<n> : ((T, T) -> (T, T)) -> 2^ n of T -> 2^ n of T
+bitonic_to_sorted casT [a] = [a]
+bitonic_to_sorted casT (as =&= bs) =
+ unzip (map casT (zip as bs)) -> (xs, ys);
+ (bitonic_to_sorted casT xs) =&= (bitonic_to_sorted casT ys)
+
+bitonic_sort<n> : Bit -> ((T, T) -> (T, T)) -> 2^ n of T -> 2^ n of T
+bitonic_sort rev casT [a] = [a]
+bitonic_sort rev casT (as =&= bs) =
+ bitonic_sort ff casT as -> as;
+ bitonic_sort tt casT bs -> bs;
+ bitonic_to_sorted (dircas casT rev) (as =&= bs)
+
+any<n> : (T -> Bit) -> n of T -> Bit
+any _ [] = ff
+-- this works fine, and would allow the checker to infer that xs/ys are
+-- nonempty, but our implementation doesn't check clauses are redundant/complete
+-- any pred (xs =&= ys) = or (any pred xs) (any pred ys)
+any pred ((x ,- xs) =&= (y ,- ys)) = any1 (any pred (x ,- xs)) pred (y ,- ys)
+any pred (xs1 =, x ,= xs2) = any1 (pred x) pred (xs1 =&= xs2)
+
+-- helper to give shortcircuit evaluation
+any1<n>: Bit -> (T -> Bit) -> n of T -> Bit
+any1 tt _ _ = tt
+any1 ff pred xs = any pred xs

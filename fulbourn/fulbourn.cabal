@@ -1,0 +1,34 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.36.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           fulbourn
+version:        0.0.0
+build-type:     Simple
+
+executable fulbourn
+  main-is: Main.hs
+  other-modules:
+      Bwd
+      Checker
+      Doc
+      Dynamics
+      Examples
+      Hasochism
+      Norm
+      Parser
+      Print
+      Syntax
+      Test
+      Util
+      Paths_fulbourn
+  hs-source-dirs:
+      ./
+  build-depends:
+      base
+    , filepath
+    , mtl
+    , parsec
+  default-language: GHC2021

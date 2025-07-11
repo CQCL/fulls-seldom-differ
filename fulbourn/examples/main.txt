@@ -1,0 +1,5 @@
+-- Run Batcher's even-odd merge sort on 2-bit numbers
+--
+-- The extra input bit is required for the main signature.
+main : 2^ S S Z of 2^ S Z of Bit
+main = sort cas [[tt, tt], [ff, tt], [ff, ff], [tt, ff]]
