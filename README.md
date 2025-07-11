@@ -2,6 +2,8 @@
 
 This repository contains supplementary material for our 2025 ICFP paper *Fulls Seldom Differ*.
 
+A VM image with the artefact is available at https://doi.org/10.5281/zenodo.15865590.
+
 
 ## Fulbourn Language Implementation and Examples
 
